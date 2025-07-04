@@ -146,6 +146,27 @@ public class Snake : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 获取相反方向
+    /// </summary>
+    private Vector2Int GetOppositeDirection(Vector2Int direction)
+    {
+        if (direction == Vector2Int.up) return Vector2Int.down;
+        if (direction == Vector2Int.down) return Vector2Int.up;
+        if (direction == Vector2Int.left) return Vector2Int.right;
+        if (direction == Vector2Int.right) return Vector2Int.left;
+        return direction;  // 默认返回原方向（安全措施）
+    }
+
+    /// <summary>
+    /// 反向箭头预告方向（吃食物时调用）
+    /// </summary>
+    private void ReverseArrowDirection()
+    {
+        nextTurnDirection = GetOppositeDirection(nextTurnDirection);
+        UpdateArrowRotation();  // 立即更新箭头视觉
+    }
+
     public void Grow()
     {
         Transform segment = Instantiate(segmentPrefab);
@@ -194,6 +215,7 @@ public class Snake : MonoBehaviour
         if (other.gameObject.CompareTag("Food"))
         {
             Grow();
+            ReverseArrowDirection();  // 吃食物后立刻反向箭头
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {
