@@ -178,9 +178,6 @@ public class Snake : MonoBehaviour
     {
         direction = Vector2Int.right;
         transform.position = Vector3.zero;
-        
-        // 生成初始预告方向
-        GenerateNextTurnDirection();
 
         // Start at 1 to skip destroying the head
         for (int i = 1; i < segments.Count; i++) {
@@ -191,10 +188,15 @@ public class Snake : MonoBehaviour
         segments.Clear();
         segments.Add(transform);
 
-        // -1 since the head is already in the list
-        for (int i = 0; i < initialSize - 1; i++) {
-            Grow();
+        // 正确初始化蛇身：向左排列
+        for (int i = 1; i < initialSize; i++) {
+            Transform segment = Instantiate(segmentPrefab);
+            segment.position = new Vector3(-i, 0, 0);  // 在蛇头左侧排列
+            segments.Add(segment);
         }
+        
+        // 生成初始预告方向
+        GenerateNextTurnDirection();
     }
 
     public bool Occupies(int x, int y)
