@@ -20,6 +20,7 @@ public class Snake : MonoBehaviour
     private float nextUpdate;
     private SpriteRenderer headRenderer;
     private Vector2Int nextTurnDirection;  // 下一次转向方向（预告）
+    private bool isClockwise = false;  // 当前旋转方向（false=逆时针，true=顺时针）
 
     private void Start()
     {
@@ -120,30 +121,44 @@ public class Snake : MonoBehaviour
     }
 
     /// <summary>
-    /// 生成下一次转向的预告方向
+    /// 生成下一次转向的预告方向（根据当前旋转方向）
     /// </summary>
     private void GenerateNextTurnDirection()
     {
-        Vector2Int[] possibleDirections = GetPerpendicularDirections(direction);
-        nextTurnDirection = possibleDirections[Random.Range(0, possibleDirections.Length)];
+        // 根据当前旋转方向选择预告方向
+        if (isClockwise)
+        {
+            nextTurnDirection = GetClockwiseDirection(direction);
+        }
+        else
+        {
+            nextTurnDirection = GetCounterClockwiseDirection(direction);
+        }
         UpdateArrowRotation();  // 更新箭头显示预告方向
     }
 
     /// <summary>
-    /// 获取垂直方向的可选转向
+    /// 获取逆时针方向
     /// </summary>
-    private Vector2Int[] GetPerpendicularDirections(Vector2Int currentDirection)
+    private Vector2Int GetCounterClockwiseDirection(Vector2Int currentDirection)
     {
-        // 如果当前是垂直移动（上/下），可以转向水平（左/右）
-        if (currentDirection.x == 0) 
-        {
-            return new Vector2Int[] { Vector2Int.left, Vector2Int.right };
-        }
-        // 如果当前是水平移动（左/右），可以转向垂直（上/下）
-        else 
-        {
-            return new Vector2Int[] { Vector2Int.up, Vector2Int.down };
-        }
+        if (currentDirection == Vector2Int.right) return Vector2Int.up;
+        if (currentDirection == Vector2Int.up) return Vector2Int.left;
+        if (currentDirection == Vector2Int.left) return Vector2Int.down;
+        if (currentDirection == Vector2Int.down) return Vector2Int.right;
+        return currentDirection;  // 默认返回原方向（安全措施）
+    }
+
+    /// <summary>
+    /// 获取顺时针方向
+    /// </summary>
+    private Vector2Int GetClockwiseDirection(Vector2Int currentDirection)
+    {
+        if (currentDirection == Vector2Int.right) return Vector2Int.down;
+        if (currentDirection == Vector2Int.down) return Vector2Int.left;
+        if (currentDirection == Vector2Int.left) return Vector2Int.up;
+        if (currentDirection == Vector2Int.up) return Vector2Int.right;
+        return currentDirection;  // 默认返回原方向（安全措施）
     }
 
     /// <summary>
@@ -163,7 +178,12 @@ public class Snake : MonoBehaviour
     /// </summary>
     private void ReverseArrowDirection()
     {
+        // 反转预告方向
         nextTurnDirection = GetOppositeDirection(nextTurnDirection);
+        
+        // 反转旋转规律
+        isClockwise = !isClockwise;
+        
         UpdateArrowRotation();  // 立即更新箭头视觉
     }
 
@@ -177,6 +197,7 @@ public class Snake : MonoBehaviour
     public void ResetState()
     {
         direction = Vector2Int.right;
+        isClockwise = false;  // 重置为逆时针
         transform.position = Vector3.zero;
 
         // Start at 1 to skip destroying the head
