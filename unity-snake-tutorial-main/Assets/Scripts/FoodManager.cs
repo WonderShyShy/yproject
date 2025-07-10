@@ -100,14 +100,23 @@ public class FoodManager : MonoBehaviour
     private Vector2Int GetRandomEmptyPosition()
     {
         Bounds bounds = gridArea.bounds;
-        int gridWidth = Mathf.RoundToInt(bounds.size.x);
-        int gridHeight = Mathf.RoundToInt(bounds.size.y);
+        
+        // 计算正确的网格范围
+        // 对于16×24的网格，有效范围应该是:
+        // X: -7 到 +7 (15个位置)
+        // Y: -11 到 +11 (23个位置)
+        int halfWidth = Mathf.FloorToInt(bounds.size.x / 2) - 1;
+        int halfHeight = Mathf.FloorToInt(bounds.size.y / 2) - 1;
+        
+        int gridWidth = halfWidth * 2 + 1;  // 15
+        int gridHeight = halfHeight * 2 + 1; // 23
         int maxAttempts = gridWidth * gridHeight * 2; // 增加尝试次数
         
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
-            int x = Mathf.RoundToInt(Random.Range(bounds.min.x, bounds.max.x));
-            int y = Mathf.RoundToInt(Random.Range(bounds.min.y, bounds.max.y));
+            // 在正确的网格范围内生成位置
+            int x = Random.Range(-halfWidth, halfWidth + 1); // -7 到 +7
+            int y = Random.Range(-halfHeight, halfHeight + 1); // -11 到 +11
             Vector2Int position = new Vector2Int(x, y);
             
             // 检查位置是否被占用
@@ -117,7 +126,7 @@ public class FoodManager : MonoBehaviour
             }
         }
         
-        Debug.LogWarning("FoodManager: 无法找到空位置生成食物！");
+        Debug.LogWarning($"FoodManager: 无法找到空位置生成食物！网格范围: X[{-halfWidth}, {halfWidth}], Y[{-halfHeight}, {halfHeight}]");
         return Vector2Int.zero; // 表示失败
     }
 
