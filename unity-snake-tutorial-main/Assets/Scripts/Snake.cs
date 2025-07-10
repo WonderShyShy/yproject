@@ -21,10 +21,12 @@ public class Snake : MonoBehaviour
     private SpriteRenderer headRenderer;
     private Vector2Int nextTurnDirection;  // 下一次转向方向（预告）
     private bool isClockwise = false;  // 当前旋转方向（false=逆时针，true=顺时针）
+    private FoodManager foodManager;
 
     private void Start()
     {
         headRenderer = GetComponent<SpriteRenderer>();
+        foodManager = FindObjectOfType<FoodManager>();
         SetupArrowHead();
         ResetState();
     }
@@ -216,6 +218,13 @@ public class Snake : MonoBehaviour
             segments.Add(segment);
         }
         
+        // 清理所有食物并生成新的初始食物
+        if (foodManager != null)
+        {
+            foodManager.ClearAllFoods();
+            foodManager.SpawnFood();
+        }
+        
         // 生成初始预告方向
         GenerateNextTurnDirection();
     }
@@ -235,10 +244,11 @@ public class Snake : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Food"))
+        if (other.gameObject.CompareTag("Food") || other.GetComponent<Food>() != null)
         {
             Grow();
             ReverseArrowDirection();  // 吃食物后立刻反向箭头
+            // 注意：食物的销毁和新食物的生成由FoodManager处理
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {

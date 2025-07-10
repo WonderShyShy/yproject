@@ -3,50 +3,31 @@
 [RequireComponent(typeof(BoxCollider2D))]
 public class Food : MonoBehaviour
 {
-    public Collider2D gridArea;
-    private Snake snake;
+    private FoodManager foodManager;
 
-    private void Awake()
+    /// <summary>
+    /// 设置FoodManager引用
+    /// </summary>
+    public void SetFoodManager(FoodManager manager)
     {
-        snake = FindObjectOfType<Snake>();
-    }
-
-    private void Start()
-    {
-        RandomizePosition();
-    }
-
-    public void RandomizePosition()
-    {
-        Bounds bounds = gridArea.bounds;
-
-        // Pick a random position inside the bounds
-        // Round the values to ensure it aligns with the grid
-        int x = Mathf.RoundToInt(Random.Range(bounds.min.x, bounds.max.x));
-        int y = Mathf.RoundToInt(Random.Range(bounds.min.y, bounds.max.y));
-
-        // Prevent the food from spawning on the snake
-        while (snake.Occupies(x, y))
-        {
-            x++;
-
-            if (x > bounds.max.x)
-            {
-                x = Mathf.RoundToInt(bounds.min.x);
-                y++;
-
-                if (y > bounds.max.y) {
-                    y = Mathf.RoundToInt(bounds.min.y);
-                }
-            }
-        }
-
-        transform.position = new Vector2(x, y);
+        foodManager = manager;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        RandomizePosition();
+        // 只有蛇头触发食物被吃
+        if (other.gameObject.CompareTag("Player") || other.GetComponent<Snake>() != null)
+        {
+            // 通知FoodManager食物被吃掉
+            if (foodManager != null)
+            {
+                foodManager.OnFoodEaten(gameObject);
+            }
+            else
+            {
+                // 如果没有FoodManager，直接销毁（兼容旧版本）
+                Destroy(gameObject);
+            }
+        }
     }
-
 }
