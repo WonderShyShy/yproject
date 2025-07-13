@@ -44,6 +44,15 @@ public class Snake : MonoBehaviour
         {
             TriggerTurn();
         }
+        
+        // 调试用：按T键测试相机抖动
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            if (CameraShake.Instance != null)
+            {
+                CameraShake.Instance.TriggerShake();
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -248,6 +257,13 @@ public class Snake : MonoBehaviour
         {
             Grow();
             ReverseArrowDirection();  // 吃食物后立刻反向箭头
+            
+            // 触发相机抖动效果
+            if (CameraShake.Instance != null)
+            {
+                CameraShake.Instance.TriggerShake();
+            }
+            
             // 注意：食物的销毁和新食物的生成由FoodManager处理
         }
         else if (other.gameObject.CompareTag("Obstacle"))
