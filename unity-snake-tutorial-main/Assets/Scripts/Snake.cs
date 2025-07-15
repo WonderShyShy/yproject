@@ -62,25 +62,27 @@ public class Snake : MonoBehaviour
             return;
         }
 
-        // Set the new direction based on the input
+        // 1. 如果有新的输入，应用它来决定下一次的移动方向
         if (input != Vector2Int.zero) {
             direction = input;
+            input = Vector2Int.zero;
         }
 
-        // Set each segment's position to be the same as the one it follows. We
-        // must do this in reverse order so the position is set to the previous
-        // position, otherwise they will all be stacked on top of each other.
+        // 2. 身体跟随逻辑：身体移动到前一节的位置
+        // Must be done in reverse order to prevent stacking
         for (int i = segments.Count - 1; i > 0; i--) {
             segments[i].position = segments[i - 1].position;
         }
 
-        // Move the snake in the direction it is facing
-        // Round the values to ensure it aligns to the grid
+        // 3. 蛇头移动：根据当前确定的方向移动
         int x = Mathf.RoundToInt(transform.position.x) + direction.x;
         int y = Mathf.RoundToInt(transform.position.y) + direction.y;
         transform.position = new Vector2(x, y);
 
-        // Set the next update time based on the speed
+        // 4. 移动完成后，为下一次转向生成新的预告
+        GenerateNextTurnDirection();
+
+        // 5. 设置下一次更新时间
         nextUpdate = Time.time + (1f / (speed * speedMultiplier));
     }
 
@@ -124,11 +126,9 @@ public class Snake : MonoBehaviour
     /// </summary>
     private void TriggerTurn()
     {
-        // 按照预告方向转向
-        direction = nextTurnDirection;
-        
-        // 生成新的预告方向
-        GenerateNextTurnDirection();
+        // 关键改动：不再立即改变方向，而是将预告方向存入input变量
+        // 等待FixedUpdate来应用这个转向
+        input = nextTurnDirection;
     }
 
     /// <summary>
