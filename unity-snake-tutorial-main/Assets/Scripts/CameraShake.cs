@@ -4,8 +4,8 @@ using UnityEngine;
 public class CameraShake : MonoBehaviour
 {
     [Header("抖动参数")]
-    public float defaultIntensity = 0.15f;    // 默认抖动强度
-    public float defaultDuration = 0.1f;      // 默认持续时间
+    public float defaultIntensity = 0.12f;    // 默认抖动强度
+    public float defaultDuration = 0.3f;      // 默认持续时间
     public AnimationCurve shakeCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);  // 抖动衰减曲线
     
     [Header("设置选项")]
