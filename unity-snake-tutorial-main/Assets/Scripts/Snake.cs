@@ -7,7 +7,7 @@ public class Snake : MonoBehaviour
     [Header("Snake Settings")]
     public Transform segmentPrefab;
     public Vector2Int direction = Vector2Int.right;
-    public float speed = 20f;
+    public float speed = 12.5f;
     public float speedMultiplier = 1f;
     public int initialSize = 4;
     public bool moveThroughWalls = false;
