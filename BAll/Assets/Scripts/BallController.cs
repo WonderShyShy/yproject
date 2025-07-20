@@ -20,17 +20,20 @@ public class BallController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
+    void FixedUpdate()
+    {
+        // 使用物理引擎进行旋转，以避免与物理计算冲突
+        rb.MoveRotation(rb.rotation - rotationSpeed * Time.fixedDeltaTime);
+    }
+
     void Update()
     {
-        // 1. 让箭头持续旋转
-        transform.Rotate(0, 0, -rotationSpeed * Time.deltaTime); // 绕Z轴旋转，负号代表顺时针
-
-        // 2. 检测屏幕点击
+        // 1. 检测屏幕点击
         if (Input.GetMouseButtonDown(0)) // 0代表鼠标左键或屏幕单点
         {
-            // 3. 朝箭头方向发射
+            // 2. 朝箭头方向发射
             // 因为箭头素材的初始方向是朝下的, 所以我们用-transform.up来获取正确的方向
-            rb.velocity = -transform.up * moveSpeed; 
+            rb.velocity = -transform.up * moveSpeed;
         }
     }
 
