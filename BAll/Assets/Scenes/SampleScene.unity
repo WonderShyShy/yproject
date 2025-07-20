@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 19437712}
   - component: {fileID: 19437711}
   - component: {fileID: 19437715}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Circle
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -181,8 +181,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990e4fc536ed8a04a9855914d5ffe494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.75
-  rotationSpeed: 200
+  moveSpeed: 1.875
+  rotationSpeed: 235
 --- !u!212 &19437713
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -245,7 +245,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -422,6 +422,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1387563789
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1387563791}
+  - component: {fileID: 1387563790}
+  m_Layer: 7
+  m_Name: ObstacleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1387563790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1387563789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ecb1b3833c548447923294eba595941, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstaclePrefab: {fileID: 896715786670696678, guid: 44e0966ab1d88a04a89ae4c10db3a50e, type: 3}
+  spawnInterval: 2
+  spawnDistance: 1
+--- !u!4 &1387563791
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1387563789}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.5098293, y: -0.9138508, z: 0.0117038}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2140364343
 GameObject:
   m_ObjectHideFlags: 0
@@ -433,7 +480,7 @@ GameObject:
   - component: {fileID: 2140364346}
   - component: {fileID: 2140364345}
   - component: {fileID: 2140364344}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Boundary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -516,3 +563,4 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 19437714}
   - {fileID: 2140364346}
+  - {fileID: 1387563791}
