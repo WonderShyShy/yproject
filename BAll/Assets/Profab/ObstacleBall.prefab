@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6011237263123396591}
   - component: {fileID: 6749500328936803409}
   - component: {fileID: 6869223262089905891}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ObstacleBall
   m_TagString: Obstacle
   m_Icon: {fileID: 0}
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -161,4 +161,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e4eb3f177caf84eb4b82d1b0109eab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 3
+  speed: 1.5

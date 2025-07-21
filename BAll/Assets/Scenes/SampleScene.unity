@@ -181,8 +181,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990e4fc536ed8a04a9855914d5ffe494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.875
-  rotationSpeed: 235
+  moveSpeed: 1.6
+  rotationSpeed: 200
 --- !u!212 &19437713
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -452,7 +452,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   obstaclePrefab: {fileID: 896715786670696678, guid: 44e0966ab1d88a04a89ae4c10db3a50e, type: 3}
-  spawnInterval: 2
+  maxOnscreenObstacles: 10
+  minSpawnInterval: 0.5
+  maxSpawnInterval: 3
+  maxWaveSize: 4
   spawnDistance: 1
 --- !u!4 &1387563791
 Transform:

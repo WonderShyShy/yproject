@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ObstacleController : MonoBehaviour
 {
-    public float speed = 3f;
+    public float speed = 1.5f; // 速度已从 3f 降低到 1.5f
     private Rigidbody2D rb;
 
     private Vector2 screenBottomLeft;
@@ -36,5 +36,11 @@ public class ObstacleController : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    void OnDestroy()
+    {
+        // 当此对象被销毁时，通知管理器
+        ObstacleManager.OnObstacleDestroyed();
     }
 } 

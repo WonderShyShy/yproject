@@ -26,17 +26,6 @@ public class BallController : MonoBehaviour
         rb.MoveRotation(rb.rotation - rotationSpeed * Time.fixedDeltaTime);
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Obstacle"))
-        {
-            Debug.Log("游戏结束！");
-            // 在这里添加真正的游戏结束逻辑，例如：
-            // Time.timeScale = 0; // 暂停游戏
-            // gameObject.SetActive(false); // 隐藏玩家
-        }
-    }
-
     void Update()
     {
         // 1. 检测屏幕点击
@@ -48,5 +37,19 @@ public class BallController : MonoBehaviour
         }
     }
 
-    // OnCollisionEnter2D 方法将被移除，因为我们将使用 PhysicsMaterial2D 来处理反弹
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // 检查碰撞到的物体标签是否为 "Wall"
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // 获取碰撞前的速度方向
+            Vector2 inDirection = rb.velocity;
+            // 获取碰撞点的法线 (即垂直于墙面的方向)
+            Vector2 inNormal = collision.contacts[0].normal;
+            // 使用 Vector2.Reflect 计算反射后的向量
+            Vector2 newVelocity = Vector2.Reflect(inDirection, inNormal);
+            // 将计算出的新速度应用到刚体上
+            rb.velocity = newVelocity;
+        }
+    }
 } 
