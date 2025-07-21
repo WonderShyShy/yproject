@@ -35,6 +35,32 @@ public class BallController : MonoBehaviour
         }
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            Debug.Log("游戏结束！");
+            // 在这里添加真正的游戏结束逻辑
+        }
+        else if (collision.gameObject.CompareTag("Link"))
+        {
+            // 撞到了连接线
+            LinkController link = collision.gameObject.GetComponent<LinkController>();
+            if (link != null)
+            {
+                // 销毁连接的两个障碍物
+                if (link.obstacleA != null) Destroy(link.obstacleA.gameObject);
+                if (link.obstacleB != null) Destroy(link.obstacleB.gameObject);
+                
+                // 销毁（回收）连接线本身
+                collision.gameObject.SetActive(false);
+                
+                // 在此可以添加得分、音效、特效等
+                Debug.Log("连接线被摧毁!");
+            }
+        }
+    }
+
     void Update()
     {
         // 1. 检测屏幕点击
@@ -45,22 +71,6 @@ public class BallController : MonoBehaviour
 
             // 3. 再加速：朝箭头方向施加一个瞬时冲量
             rb.AddForce(-transform.up * moveForce, ForceMode2D.Impulse);
-        }
-    }
-
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        // 检查碰撞到的物体标签是否为 "Wall"
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            // 获取碰撞前的速度方向
-            Vector2 inDirection = rb.velocity;
-            // 获取碰撞点的法线 (即垂直于墙面的方向)
-            Vector2 inNormal = collision.contacts[0].normal;
-            // 使用 Vector2.Reflect 计算反射后的向量
-            Vector2 newVelocity = Vector2.Reflect(inDirection, inNormal);
-            // 将计算出的新速度应用到刚体上
-            rb.velocity = newVelocity;
         }
     }
 } 
