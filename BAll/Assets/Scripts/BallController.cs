@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float moveSpeed = 8f;     // 球的移动速度
+    public float moveForce = 10f;    // 每次点击施加的力
+    public float maxSpeed = 12f;     // 小球的最大速度
     public float rotationSpeed = 200f; // 箭头的旋转速度
+    [Range(0, 1)]
+    public float brakeFactor = 0.9f; // 刹车力度, 0.9代表瞬间抵消90%的速度
 
     private Rigidbody2D rb;
 
@@ -24,6 +27,12 @@ public class BallController : MonoBehaviour
     {
         // 使用物理引擎进行旋转，以避免与物理计算冲突
         rb.MoveRotation(rb.rotation - rotationSpeed * Time.fixedDeltaTime);
+
+        // 增加速度上限控制
+        if (rb.velocity.magnitude > maxSpeed)
+        {
+            rb.velocity = rb.velocity.normalized * maxSpeed;
+        }
     }
 
     void Update()
@@ -31,9 +40,11 @@ public class BallController : MonoBehaviour
         // 1. 检测屏幕点击
         if (Input.GetMouseButtonDown(0)) // 0代表鼠标左键或屏幕单点
         {
-            // 2. 朝箭头方向发射
-            // 因为箭头素材的初始方向是朝下的, 所以我们用-transform.up来获取正确的方向
-            rb.velocity = -transform.up * moveSpeed;
+            // 2. 先刹车：瞬间抵消掉大部分当前速度
+            rb.velocity *= (1 - brakeFactor);
+
+            // 3. 再加速：朝箭头方向施加一个瞬时冲量
+            rb.AddForce(-transform.up * moveForce, ForceMode2D.Impulse);
         }
     }
 

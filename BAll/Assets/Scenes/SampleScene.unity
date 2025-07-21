@@ -181,8 +181,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990e4fc536ed8a04a9855914d5ffe494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.6
-  rotationSpeed: 200
+  moveForce: 1.75
+  maxSpeed: 13
+  rotationSpeed: 185
+  brakeFactor: 0.8
 --- !u!212 &19437713
 SpriteRenderer:
   m_ObjectHideFlags: 0
