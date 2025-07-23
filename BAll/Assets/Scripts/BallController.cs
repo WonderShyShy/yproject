@@ -42,23 +42,31 @@ public class BallController : MonoBehaviour
         if (collision.gameObject.CompareTag("Obstacle"))
         {
             Debug.Log("游戏结束！");
-            // 在这里添加真正的游戏结束逻辑
         }
         else if (collision.gameObject.CompareTag("Link"))
         {
-            // 撞到了连接线
             LinkController link = collision.gameObject.GetComponent<LinkController>();
             if (link != null)
             {
-                // 销毁连接的两个障碍物
-                if (link.obstacleA != null) Destroy(link.obstacleA.gameObject);
-                if (link.obstacleB != null) Destroy(link.obstacleB.gameObject);
-                
-                // 销毁（回收）连接线本身
+                // 1. 保存对即将被销毁的两个障碍物的引用
+                Transform obsA = link.obstacleA;
+                Transform obsB = link.obstacleB;
+
+                // 2. 立即回收被撞的主连接线
                 collision.gameObject.SetActive(false);
                 
-                // 在此可以添加得分、音效、特效等
-                Debug.Log("连接线被摧毁!");
+                // 3. 命令 LinkManager 清理所有相关的次级连接线
+                if (LinkManager.instance != null)
+                {
+                    LinkManager.instance.RemoveAllLinksConnectedTo(obsA);
+                    LinkManager.instance.RemoveAllLinksConnectedTo(obsB);
+                }
+                
+                // 4. 最后，销毁两个核心障碍物
+                if (obsA != null) Destroy(obsA.gameObject);
+                if (obsB != null) Destroy(obsB.gameObject);
+
+                Debug.Log("连锁反应被触发!");
             }
         }
     }

@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class LinkManager : MonoBehaviour
 {
+    // 单例模式实现
+    public static LinkManager instance;
+
     public GameObject linkPrefab; // 连接线预制体
     public float linkDistanceThreshold = 3f; // 触发连接的距离阈值
     public int poolSize = 20; // 对象池大小
@@ -11,6 +14,19 @@ public class LinkManager : MonoBehaviour
     private List<GameObject> linkPool;
     private Dictionary<Tuple<Transform, Transform>, GameObject> activeLinks;
     private List<Transform> obstacles;
+
+    void Awake()
+    {
+        // 确保场景中只有一个 LinkManager 实例
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void Start()
     {
@@ -122,5 +138,27 @@ public class LinkManager : MonoBehaviour
         }
         // 如果池中不够用，可以动态创建或返回null
         return null;
+    }
+
+    // 新的公共接口，用于移除所有与指定障碍物相连的线
+    public void RemoveAllLinksConnectedTo(Transform obstacle)
+    {
+        if (obstacle == null) return;
+
+        List<Tuple<Transform, Transform>> linksToRemove = new List<Tuple<Transform, Transform>>();
+
+        foreach (var link in activeLinks)
+        {
+            if (link.Key.Item1 == obstacle || link.Key.Item2 == obstacle)
+            {
+                linksToRemove.Add(link.Key);
+                link.Value.SetActive(false); // 归还到对象池
+            }
+        }
+
+        foreach (var key in linksToRemove)
+        {
+            activeLinks.Remove(key);
+        }
     }
 } 
