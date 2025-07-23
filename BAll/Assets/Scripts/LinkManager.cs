@@ -99,10 +99,11 @@ public class LinkManager : MonoBehaviour
                     GameObject linkObject = GetFromPool();
                     if (linkObject != null)
                     {
+                        // 正确的顺序：先激活，再初始化
                         linkObject.SetActive(true);
                         LinkController controller = linkObject.GetComponent<LinkController>();
-                        controller.obstacleA = obsA;
-                        controller.obstacleB = obsB;
+                        controller.Initialize(obsA, obsB);
+                        
                         activeLinks.Add(linkKey, linkObject);
                     }
                 }
