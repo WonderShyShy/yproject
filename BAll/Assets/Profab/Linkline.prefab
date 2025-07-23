@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2995678292589455236}
   - component: {fileID: 1212231303677303885}
   - component: {fileID: 1056680618867071930}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Linkline
   m_TagString: Link
   m_Icon: {fileID: 0}
@@ -191,8 +191,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f55c5ab8e5fb7849b3cdb21aabc5a5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstacleA: {fileID: 0}
-  obstacleB: {fileID: 0}
   minWidth: 0.05
   maxWidth: 0.2
   breathSpeed: 3

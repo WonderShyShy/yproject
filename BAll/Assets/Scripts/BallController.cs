@@ -37,6 +37,8 @@ public class BallController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("Ball collided with: " + collision.gameObject.name + " which has tag: " + collision.gameObject.tag);
+
         if (collision.gameObject.CompareTag("Obstacle"))
         {
             Debug.Log("游戏结束！");
