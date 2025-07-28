@@ -10,17 +10,24 @@ public class BallController : MonoBehaviour
     [Range(0, 1)]
     public float brakeFactor = 0.9f; // 刹车力度, 0.9代表瞬间抵消90%的速度
 
+    [Header("Visual Feedback")]
+    public float pulseMaxSize = 1.2f;  // 放大到的最大尺寸倍数
+    public float pulseDuration = 0.2f; // 完成一次放大缩小动画的总时长
+
     private Rigidbody2D rb;
+    private Vector3 originalScale;
 
     void Awake()
     {
         // 将游戏的目标帧率锁定在60FPS
         Application.targetFrameRate = 60;
+        rb = GetComponent<Rigidbody2D>();
+        originalScale = transform.localScale;
     }
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        // rb = GetComponent<Rigidbody2D>(); // This line is moved to Awake
     }
 
     void FixedUpdate()
@@ -81,6 +88,40 @@ public class BallController : MonoBehaviour
 
             // 3. 再加速：朝箭头方向施加一个瞬时冲量
             rb.AddForce(-transform.up * moveForce, ForceMode2D.Impulse);
+
+            // 停止所有正在运行的同名协程，以避免动画冲突
+            StopCoroutine("PulseRoutine");
+            // 启动新的缩放动画
+            StartCoroutine(PulseRoutine());
         }
+    }
+    
+    IEnumerator PulseRoutine()
+    {
+        float timer = 0f;
+        float halfDuration = pulseDuration / 2f;
+        Vector3 startScale = originalScale;
+        Vector3 maxScale = originalScale * pulseMaxSize;
+
+        // 放大阶段
+        while (timer < halfDuration)
+        {
+            float progress = timer / halfDuration;
+            transform.localScale = Vector3.Lerp(startScale, maxScale, progress);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // 缩小阶段
+        timer = 0f;
+        while (timer < halfDuration)
+        {
+            float progress = timer / halfDuration;
+            transform.localScale = Vector3.Lerp(maxScale, startScale, progress);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.localScale = startScale; // 保证动画结束时恢复到精确的原始大小
     }
 } 
