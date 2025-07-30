@@ -11,9 +11,14 @@ public class BallController : MonoBehaviour
     public float brakeFactor = 0.9f; // 刹车力度, 0.9代表瞬间抵消90%的速度
 
     [Header("Visual Feedback")]
-    public float pulseMaxSize = 1.2f;      // 放大到的最大尺寸倍数
-    public float expandDuration = 0.08f;   // 快速放大的时长
-    public float shrinkDuration = 0.15f;   // 缓慢缩小的时长
+    public float pulseMaxSize = 1.25f;      // 放大到的最大尺寸倍数
+    public float expandDuration = 0.07f;   // 快速放大的时长
+    public float shrinkDuration = 0.18f;   // 缓慢缩小的时长
+
+    [Header("Ghost Effect")]
+    public GameObject ghostPrefab;
+    public int ghostPoolSize = 5;
+    private List<GameObject> ghostPool;
 
     private Rigidbody2D rb;
     private Vector3 originalScale;
@@ -24,6 +29,18 @@ public class BallController : MonoBehaviour
         Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
+        InitializeGhostPool();
+    }
+
+    void InitializeGhostPool()
+    {
+        ghostPool = new List<GameObject>();
+        for (int i = 0; i < ghostPoolSize; i++)
+        {
+            GameObject ghost = Instantiate(ghostPrefab, transform.position, Quaternion.identity);
+            ghost.SetActive(false);
+            ghostPool.Add(ghost);
+        }
     }
 
     void Start()
@@ -94,6 +111,9 @@ public class BallController : MonoBehaviour
             StopCoroutine("PulseRoutine");
             // 启动新的缩放动画
             StartCoroutine(PulseRoutine());
+            
+            // 召唤残影
+            SpawnGhost();
         }
     }
     
@@ -124,6 +144,32 @@ public class BallController : MonoBehaviour
         }
 
         transform.localScale = startScale;
+    }
+
+    void SpawnGhost()
+    {
+        GameObject ghost = GetGhostFromPool();
+        if (ghost != null)
+        {
+            ghost.transform.position = transform.position;
+            ghost.transform.rotation = transform.rotation;
+            ghost.SetActive(true);
+            
+            float totalPulseDuration = expandDuration + shrinkDuration;
+            ghost.GetComponent<GhostController>().Play(transform, totalPulseDuration);
+        }
+    }
+
+    GameObject GetGhostFromPool()
+    {
+        foreach (var ghost in ghostPool)
+        {
+            if (!ghost.activeInHierarchy)
+            {
+                return ghost;
+            }
+        }
+        return null;
     }
 
     // 一个小型的静态帮助类，用于存放缓动函数
