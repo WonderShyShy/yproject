@@ -181,7 +181,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990e4fc536ed8a04a9855914d5ffe494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveForce: 1.75
+  moveForce: 1.8125
   maxSpeed: 13
   rotationSpeed: 185
   brakeFactor: 0.8
