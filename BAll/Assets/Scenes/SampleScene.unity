@@ -185,6 +185,9 @@ MonoBehaviour:
   maxSpeed: 13
   rotationSpeed: 185
   brakeFactor: 0.8
+  pulseMaxSize: 1.25
+  expandDuration: 0.07
+  shrinkDuration: 0.18
 --- !u!212 &19437713
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -504,7 +507,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   linkPrefab: {fileID: 7204105278028967760, guid: f7581ef90a2a81e40845ed29562f7f70, type: 3}
-  linkDistanceThreshold: 2.5
+  linkDistanceThreshold: 2.875
   poolSize: 20
 --- !u!4 &1618114374
 Transform:

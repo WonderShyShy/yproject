@@ -11,8 +11,9 @@ public class BallController : MonoBehaviour
     public float brakeFactor = 0.9f; // 刹车力度, 0.9代表瞬间抵消90%的速度
 
     [Header("Visual Feedback")]
-    public float pulseMaxSize = 1.2f;  // 放大到的最大尺寸倍数
-    public float pulseDuration = 0.2f; // 完成一次放大缩小动画的总时长
+    public float pulseMaxSize = 1.2f;      // 放大到的最大尺寸倍数
+    public float expandDuration = 0.08f;   // 快速放大的时长
+    public float shrinkDuration = 0.15f;   // 缓慢缩小的时长
 
     private Rigidbody2D rb;
     private Vector3 originalScale;
@@ -99,29 +100,38 @@ public class BallController : MonoBehaviour
     IEnumerator PulseRoutine()
     {
         float timer = 0f;
-        float halfDuration = pulseDuration / 2f;
         Vector3 startScale = originalScale;
         Vector3 maxScale = originalScale * pulseMaxSize;
 
-        // 放大阶段
-        while (timer < halfDuration)
+        // 放大阶段 (使用 EaseOut 曲线，开始快，结尾慢)
+        while (timer < expandDuration)
         {
-            float progress = timer / halfDuration;
-            transform.localScale = Vector3.Lerp(startScale, maxScale, progress);
+            float linearProgress = timer / expandDuration;
+            float easedProgress = Easing.EaseOutQuad(linearProgress);
+            transform.localScale = Vector3.LerpUnclamped(startScale, maxScale, easedProgress);
             timer += Time.deltaTime;
             yield return null;
         }
 
-        // 缩小阶段
+        // 缩小阶段 (使用线性插值，匀速)
         timer = 0f;
-        while (timer < halfDuration)
+        while (timer < shrinkDuration)
         {
-            float progress = timer / halfDuration;
+            float progress = timer / shrinkDuration;
             transform.localScale = Vector3.Lerp(maxScale, startScale, progress);
             timer += Time.deltaTime;
             yield return null;
         }
 
-        transform.localScale = startScale; // 保证动画结束时恢复到精确的原始大小
+        transform.localScale = startScale;
+    }
+
+    // 一个小型的静态帮助类，用于存放缓动函数
+    public static class Easing
+    {
+        public static float EaseOutQuad(float t)
+        {
+            return 1 - (1 - t) * (1 - t);
+        }
     }
 } 
