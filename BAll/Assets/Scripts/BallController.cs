@@ -62,32 +62,39 @@ public class BallController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Ball collided with: " + collision.gameObject.name + " which has tag: " + collision.gameObject.tag);
+        Debug.Log("Ball COLLIDED with: " + collision.gameObject.name + " which has tag: " + collision.gameObject.tag);
 
+        // OnCollisionEnter2D 现在只处理会产生物理反弹的碰撞
         if (collision.gameObject.CompareTag("Obstacle"))
         {
             Debug.Log("游戏结束！");
+            // 在这里添加真正的游戏结束逻辑
         }
-        else if (collision.gameObject.CompareTag("Link"))
+        // 您可能需要在这里加回与 "Wall" 碰撞的逻辑
+        // else if (collision.gameObject.CompareTag("Wall")) { ... }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log("Ball TRIGGERED with: " + other.gameObject.name + " which has tag: " + other.gameObject.tag);
+
+        // OnTriggerEnter2D 现在专门处理不会产生反弹的事件，比如撞断连接线
+        if (other.gameObject.CompareTag("Link"))
         {
-            LinkController link = collision.gameObject.GetComponent<LinkController>();
+            LinkController link = other.gameObject.GetComponent<LinkController>();
             if (link != null)
             {
-                // 1. 保存对即将被销毁的两个障碍物的引用
                 Transform obsA = link.obstacleA;
                 Transform obsB = link.obstacleB;
 
-                // 2. 立即回收被撞的主连接线
-                collision.gameObject.SetActive(false);
+                other.gameObject.SetActive(false);
                 
-                // 3. 命令 LinkManager 清理所有相关的次级连接线
                 if (LinkManager.instance != null)
                 {
                     LinkManager.instance.RemoveAllLinksConnectedTo(obsA);
                     LinkManager.instance.RemoveAllLinksConnectedTo(obsB);
                 }
                 
-                // 4. 最后，销毁两个核心障碍物
                 if (obsA != null) Destroy(obsA.gameObject);
                 if (obsB != null) Destroy(obsB.gameObject);
 

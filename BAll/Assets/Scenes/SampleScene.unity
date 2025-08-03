@@ -398,7 +398,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 7
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -509,7 +509,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   linkPrefab: {fileID: 7204105278028967760, guid: f7581ef90a2a81e40845ed29562f7f70, type: 3}
-  linkDistanceThreshold: 2.875
+  linkDistanceThreshold: 3.25
   poolSize: 20
 --- !u!4 &1618114374
 Transform:
