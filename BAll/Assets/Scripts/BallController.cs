@@ -77,29 +77,58 @@ public class BallController : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log("Ball TRIGGERED with: " + other.gameObject.name + " which has tag: " + other.gameObject.tag);
-
-        // OnTriggerEnter2D 现在专门处理不会产生反弹的事件，比如撞断连接线
         if (other.gameObject.CompareTag("Link"))
         {
-            LinkController link = other.gameObject.GetComponent<LinkController>();
-            if (link != null)
+            // --- 开始新的雪崩算法 ---
+            
+            // 1. 初始化数据结构
+            HashSet<Transform> markedForDeath = new HashSet<Transform>();
+            Queue<Transform> workQueue = new Queue<Transform>();
+
+            LinkController hitLink = other.gameObject.GetComponent<LinkController>();
+            if (hitLink == null || hitLink.obstacleA == null || hitLink.obstacleB == null) return;
+
+            // 2. 将最初被撞断的两个球加入队列和标记集
+            workQueue.Enqueue(hitLink.obstacleA);
+            markedForDeath.Add(hitLink.obstacleA);
+            workQueue.Enqueue(hitLink.obstacleB);
+            markedForDeath.Add(hitLink.obstacleB);
+
+            // 3. 开始广度优先搜索（BFS），像波纹一样扩散
+            while (workQueue.Count > 0)
             {
-                Transform obsA = link.obstacleA;
-                Transform obsB = link.obstacleB;
-
-                other.gameObject.SetActive(false);
+                Transform currentBall = workQueue.Dequeue();
                 
-                if (LinkManager.instance != null)
+                if (LinkManager.instance == null) continue;
+                List<Transform> neighbors = LinkManager.instance.GetNeighborsOf(currentBall);
+
+                foreach (Transform neighbor in neighbors)
                 {
-                    LinkManager.instance.RemoveAllLinksConnectedTo(obsA);
-                    LinkManager.instance.RemoveAllLinksConnectedTo(obsB);
+                    if (neighbor != null && !markedForDeath.Contains(neighbor))
+                    {
+                        markedForDeath.Add(neighbor);
+                        workQueue.Enqueue(neighbor);
+                    }
                 }
-                
-                if (obsA != null) Destroy(obsA.gameObject);
-                if (obsB != null) Destroy(obsB.gameObject);
-
-                Debug.Log("连锁反应被触发!");
             }
+
+            // 4. 清理与销毁
+            Debug.Log("雪崩式消除！总共波及 " + markedForDeath.Count + " 个障碍球。");
+            
+            if (LinkManager.instance != null)
+            {
+                LinkManager.instance.RemoveLinksForCluster(markedForDeath);
+            }
+
+            foreach (Transform ballTransform in markedForDeath)
+            {
+                if (ballTransform != null)
+                {
+                    Destroy(ballTransform.gameObject);
+                }
+            }
+            
+            other.gameObject.SetActive(false);
         }
     }
 

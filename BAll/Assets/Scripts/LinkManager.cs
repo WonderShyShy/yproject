@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class LinkManager : MonoBehaviour
@@ -54,6 +55,49 @@ public class LinkManager : MonoBehaviour
         
         // 发现新连接
         DiscoverNewLinks();
+    }
+
+    public List<Transform> GetNeighborsOf(Transform obstacle)
+    {
+        List<Transform> neighbors = new List<Transform>();
+        // 遍历所有激活的连接线
+        foreach (var linkPair in activeLinks)
+        {
+            // 如果给定的障碍球是这条线的端点A
+            if (linkPair.Key.Item1 == obstacle)
+            {
+                // 那么端点B就是它的邻居
+                if(linkPair.Key.Item2 != null) // 安全检查
+                    neighbors.Add(linkPair.Key.Item2);
+            }
+            // 如果给定的障碍球是这条线的端点B
+            else if (linkPair.Key.Item2 == obstacle)
+            {
+                // 那么端点A就是它的邻居
+                if(linkPair.Key.Item1 != null) // 安全检查
+                    neighbors.Add(linkPair.Key.Item1);
+            }
+        }
+        return neighbors;
+    }
+
+    public void RemoveLinksForCluster(HashSet<Transform> cluster)
+    {
+        // 找出所有需要被移除的连接线的 Key
+        // 条件：连接线的任意一端在 cluster 集合中
+        var keysToRemove = activeLinks.Keys.Where(key => 
+            (key.Item1 != null && cluster.Contains(key.Item1)) || 
+            (key.Item2 != null && cluster.Contains(key.Item2))
+        ).ToList(); 
+
+        foreach (var key in keysToRemove)
+        {
+            if (activeLinks.TryGetValue(key, out GameObject linkObject))
+            {
+                linkObject.SetActive(false); // 回收连接线到对象池
+                activeLinks.Remove(key);     // 从激活字典中移除
+            }
+        }
     }
 
     void UpdateObstacleList()
