@@ -4,21 +4,42 @@ using UnityEngine;
 public class ObstacleManager : MonoBehaviour
 {
     public GameObject obstaclePrefab;
-    public int maxOnscreenObstacles = 10;
-    public float minSpawnInterval = 0.5f; // 场上空闲时的最快生成间隔
-    public float maxSpawnInterval = 3f;  // 场上拥挤时的最慢生成间隔
-    public int maxWaveSize = 3;         // 一次最多能生成的数量
-    public float spawnDistance = 1f;
+    public float spawnDistance = 1.0f; // 障碍球生成在屏幕边缘外多远
+    
+    [Header("Wave Settings")]
+    [Tooltip("屏幕上允许存在的最大障碍物数量")]
+    public int maxOnscreenObstacles = 18; // 增加容量
+    [Tooltip("一波可以生成的最大障碍物数量")]
+    public int maxWaveSize = 5; // 增加力度
+    [Tooltip("两波生成之间的最小等待时间（秒）")]
+    public float minWaitBetweenWaves = 0.5f; // 加快反应
+    [Tooltip("两波生成之间的最大等待时间（秒）")]
+    public float maxWaitBetweenWaves = 2.0f; // 整体加快节奏
 
+    public static ObstacleManager instance;
+    private static int currentObstacleCount = 0;
+    
     private Vector2 screenBottomLeft;
     private Vector2 screenTopRight;
-    private static int currentObstacleCount = 0;
 
     public static void OnObstacleDestroyed()
     {
         if (currentObstacleCount > 0)
         {
             currentObstacleCount--;
+        }
+    }
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
         }
     }
 
@@ -77,7 +98,7 @@ public class ObstacleManager : MonoBehaviour
     float CalculateWaitTime()
     {
         float occupancyRatio = (float)currentObstacleCount / maxOnscreenObstacles;
-        return Mathf.Lerp(minSpawnInterval, maxSpawnInterval, occupancyRatio);
+        return Mathf.Lerp(minWaitBetweenWaves, maxWaitBetweenWaves, occupancyRatio);
     }
 
     void SpawnSingleObstacle(int edge)
