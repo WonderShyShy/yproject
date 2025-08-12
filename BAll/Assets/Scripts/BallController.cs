@@ -10,6 +10,10 @@ public class BallController : MonoBehaviour
     [Range(0, 1)]
     public float brakeFactor = 0.9f; // 刹车力度, 0.9代表瞬间抵消90%的速度
 
+    [Header("Chain Reaction Rewards")]
+    public int screenShakeThreshold = 2; // 触发屏幕抖动的最小数量
+    public int timeStopThreshold = 5;    // 触发时间停止的最小数量
+
     [Header("Visual Feedback")]
     public float pulseMaxSize = 1.25f;      // 放大到的最大尺寸倍数
     public float expandDuration = 0.07f;   // 快速放大的时长
@@ -69,6 +73,7 @@ public class BallController : MonoBehaviour
         {
             Debug.Log("游戏结束！");
             // 在这里添加真正的游戏结束逻辑
+            Time.timeScale = 0f; // 一个简单的暂停效果
         }
         // 您可能需要在这里加回与 "Wall" 碰撞的逻辑
         // else if (collision.gameObject.CompareTag("Wall")) { ... }
@@ -79,7 +84,7 @@ public class BallController : MonoBehaviour
         Debug.Log("Ball TRIGGERED with: " + other.gameObject.name + " which has tag: " + other.gameObject.tag);
         if (other.gameObject.CompareTag("Link"))
         {
-            // --- 开始新的雪崩算法 ---
+            // --- 开始雪崩算法 ---
             
             // 1. 初始化数据结构
             HashSet<Transform> markedForDeath = new HashSet<Transform>();
@@ -112,24 +117,42 @@ public class BallController : MonoBehaviour
                 }
             }
 
-            // 4. 清理与销毁
-            Debug.Log("雪崩式消除！总共波及 " + markedForDeath.Count + " 个障碍球。");
-            
-            if (LinkManager.instance != null)
+            int eliminatedCount = markedForDeath.Count;
+            Debug.Log("雪崩式消除！总共波及 " + eliminatedCount + " 个障碍球。");
+
+            // --- 4. 决策与奖励 ---
+            if (eliminatedCount >= timeStopThreshold)
             {
-                LinkManager.instance.RemoveLinksForCluster(markedForDeath);
+                Debug.Log("触发高级奖励：时间停止！");
+                // TODO: 在这里根据 eliminatedCount 计算并累加分数
+                GameManager.instance.TriggerTimeStop();
+            }
+            else if (eliminatedCount >= screenShakeThreshold)
+            {
+                Debug.Log("触发中级奖励：屏幕抖动！");
+                // TODO: 在这里根据 eliminatedCount 计算并累加分数
+                GameManager.instance.TriggerScreenShake();
             }
 
-            foreach (Transform ballTransform in markedForDeath)
-            {
-                if (ballTransform != null)
-                {
-                    Destroy(ballTransform.gameObject);
-                }
-            }
-            
-            other.gameObject.SetActive(false);
+            // 5. 清理被标记的集群
+            CleanupCluster(markedForDeath, other.gameObject);
         }
+    }
+
+    private void CleanupCluster(HashSet<Transform> cluster, GameObject brokenLink)
+    {
+        if (LinkManager.instance != null)
+        {
+            LinkManager.instance.RemoveLinksForCluster(cluster);
+        }
+        foreach (Transform ballTransform in cluster)
+        {
+            if (ballTransform != null)
+            {
+                Destroy(ballTransform.gameObject);
+            }
+        }
+        if (brokenLink != null) brokenLink.SetActive(false);
     }
 
     void Update()
