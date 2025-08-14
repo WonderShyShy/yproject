@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BallController : MonoBehaviour
@@ -12,7 +13,7 @@ public class BallController : MonoBehaviour
 
     [Header("Chain Reaction Rewards")]
     public int screenShakeThreshold = 2; // 触发屏幕抖动的最小数量
-    public int timeStopThreshold = 5;    // 触发时间停止的最小数量
+    public int timeStopThreshold = 7;    // 触发时间停止的最小数量（>6）
 
     [Header("Visual Feedback")]
     public float pulseMaxSize = 1.25f;      // 放大到的最大尺寸倍数
@@ -29,7 +30,6 @@ public class BallController : MonoBehaviour
 
     void Awake()
     {
-        // 将游戏的目标帧率锁定在60FPS
         Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody2D>();
         originalScale = transform.localScale;
@@ -47,17 +47,9 @@ public class BallController : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        // rb = GetComponent<Rigidbody2D>(); // This line is moved to Awake
-    }
-
     void FixedUpdate()
     {
-        // 使用物理引擎进行旋转，以避免与物理计算冲突
         rb.MoveRotation(rb.rotation - rotationSpeed * Time.fixedDeltaTime);
-
-        // 增加速度上限控制
         if (rb.velocity.magnitude > maxSpeed)
         {
             rb.velocity = rb.velocity.normalized * maxSpeed;
@@ -66,76 +58,59 @@ public class BallController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Ball COLLIDED with: " + collision.gameObject.name + " which has tag: " + collision.gameObject.tag);
-
-        // OnCollisionEnter2D 现在只处理会产生物理反弹的碰撞
         if (collision.gameObject.CompareTag("Obstacle"))
         {
             Debug.Log("游戏结束！");
-            // 在这里添加真正的游戏结束逻辑
-            Time.timeScale = 0f; // 一个简单的暂停效果
+            Time.timeScale = 0f;
         }
-        // 您可能需要在这里加回与 "Wall" 碰撞的逻辑
-        // else if (collision.gameObject.CompareTag("Wall")) { ... }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("Ball TRIGGERED with: " + other.gameObject.name + " which has tag: " + other.gameObject.tag);
         if (other.gameObject.CompareTag("Link"))
         {
-            // --- 开始雪崩算法 ---
-            
-            // 1. 初始化数据结构
-            HashSet<Transform> markedForDeath = new HashSet<Transform>();
-            Queue<Transform> workQueue = new Queue<Transform>();
+            // BFS 构造整簇
+            HashSet<Transform> cluster = new HashSet<Transform>();
+            Queue<Transform> queue = new Queue<Transform>();
 
             LinkController hitLink = other.gameObject.GetComponent<LinkController>();
             if (hitLink == null || hitLink.obstacleA == null || hitLink.obstacleB == null) return;
 
-            // 2. 将最初被撞断的两个球加入队列和标记集
-            workQueue.Enqueue(hitLink.obstacleA);
-            markedForDeath.Add(hitLink.obstacleA);
-            workQueue.Enqueue(hitLink.obstacleB);
-            markedForDeath.Add(hitLink.obstacleB);
+            queue.Enqueue(hitLink.obstacleA); cluster.Add(hitLink.obstacleA);
+            queue.Enqueue(hitLink.obstacleB); cluster.Add(hitLink.obstacleB);
 
-            // 3. 开始广度优先搜索（BFS），像波纹一样扩散
-            while (workQueue.Count > 0)
+            while (queue.Count > 0)
             {
-                Transform currentBall = workQueue.Dequeue();
-                
+                Transform cur = queue.Dequeue();
                 if (LinkManager.instance == null) continue;
-                List<Transform> neighbors = LinkManager.instance.GetNeighborsOf(currentBall);
-
-                foreach (Transform neighbor in neighbors)
+                var neigh = LinkManager.instance.GetNeighborsOf(cur);
+                foreach (var n in neigh)
                 {
-                    if (neighbor != null && !markedForDeath.Contains(neighbor))
+                    if (n != null && !cluster.Contains(n))
                     {
-                        markedForDeath.Add(neighbor);
-                        workQueue.Enqueue(neighbor);
+                        cluster.Add(n);
+                        queue.Enqueue(n);
                     }
                 }
             }
 
-            int eliminatedCount = markedForDeath.Count;
-            Debug.Log("雪崩式消除！总共波及 " + eliminatedCount + " 个障碍球。");
-
-            // --- 4. 决策与奖励 ---
-            if (eliminatedCount >= timeStopThreshold)
+            int cnt = cluster.Count;
+            if (cnt >= timeStopThreshold)
             {
-                Debug.Log("触发高级奖励：时间停止！");
-                // TODO: 在这里根据 eliminatedCount 计算并累加分数
-                GameManager.instance.TriggerTimeStop();
+                // 大连锁：时间停止 + 逐个传递
+                other.gameObject.SetActive(false);
+                var adjacency = BuildAdjacencySnapshot(cluster);
+                var order = GenerateEliminationOrder(hitLink, cluster, adjacency);
+                GameManager.instance.TriggerCascadeTimeStop(order);
+                return;
             }
-            else if (eliminatedCount >= screenShakeThreshold)
+            else if (cnt >= screenShakeThreshold)
             {
-                Debug.Log("触发中级奖励：屏幕抖动！");
-                // TODO: 在这里根据 eliminatedCount 计算并累加分数
                 GameManager.instance.TriggerScreenShake();
             }
 
-            // 5. 清理被标记的集群
-            CleanupCluster(markedForDeath, other.gameObject);
+            // 小连锁：整簇立即清理
+            CleanupCluster(cluster, other.gameObject);
         }
     }
 
@@ -145,63 +120,46 @@ public class BallController : MonoBehaviour
         {
             LinkManager.instance.RemoveLinksForCluster(cluster);
         }
-        foreach (Transform ballTransform in cluster)
+        foreach (var t in cluster)
         {
-            if (ballTransform != null)
-            {
-                Destroy(ballTransform.gameObject);
-            }
+            if (t != null) Destroy(t.gameObject);
         }
         if (brokenLink != null) brokenLink.SetActive(false);
     }
 
     void Update()
     {
-        // 1. 检测屏幕点击
-        if (Input.GetMouseButtonDown(0)) // 0代表鼠标左键或屏幕单点
+        if (Input.GetMouseButtonDown(0))
         {
-            // 2. 先刹车：瞬间抵消掉大部分当前速度
             rb.velocity *= (1 - brakeFactor);
-
-            // 3. 再加速：朝箭头方向施加一个瞬时冲量
             rb.AddForce(-transform.up * moveForce, ForceMode2D.Impulse);
-
-            // 停止所有正在运行的同名协程，以避免动画冲突
             StopCoroutine("PulseRoutine");
-            // 启动新的缩放动画
             StartCoroutine(PulseRoutine());
-            
-            // 召唤残影
             SpawnGhost();
         }
     }
-    
+
     IEnumerator PulseRoutine()
     {
         float timer = 0f;
         Vector3 startScale = originalScale;
         Vector3 maxScale = originalScale * pulseMaxSize;
-
-        // 放大阶段 (使用 EaseOut 曲线，开始快，结尾慢)
         while (timer < expandDuration)
         {
-            float linearProgress = timer / expandDuration;
-            float easedProgress = Easing.EaseOutQuad(linearProgress);
-            transform.localScale = Vector3.LerpUnclamped(startScale, maxScale, easedProgress);
+            float p = timer / expandDuration;
+            float eased = Easing.EaseOutQuad(p);
+            transform.localScale = Vector3.LerpUnclamped(startScale, maxScale, eased);
             timer += Time.deltaTime;
             yield return null;
         }
-
-        // 缩小阶段 (使用线性插值，匀速)
         timer = 0f;
         while (timer < shrinkDuration)
         {
-            float progress = timer / shrinkDuration;
-            transform.localScale = Vector3.Lerp(maxScale, startScale, progress);
+            float p = timer / shrinkDuration;
+            transform.localScale = Vector3.Lerp(maxScale, startScale, p);
             timer += Time.deltaTime;
             yield return null;
         }
-
         transform.localScale = startScale;
     }
 
@@ -213,30 +171,84 @@ public class BallController : MonoBehaviour
             ghost.transform.position = transform.position;
             ghost.transform.rotation = transform.rotation;
             ghost.SetActive(true);
-            
-            float totalPulseDuration = expandDuration + shrinkDuration;
-            ghost.GetComponent<GhostController>().Play(transform, totalPulseDuration);
+            float total = expandDuration + shrinkDuration;
+            ghost.GetComponent<GhostController>().Play(transform, total);
         }
     }
 
     GameObject GetGhostFromPool()
     {
-        foreach (var ghost in ghostPool)
+        foreach (var g in ghostPool)
         {
-            if (!ghost.activeInHierarchy)
-            {
-                return ghost;
-            }
+            if (!g.activeInHierarchy) return g;
         }
         return null;
     }
 
-    // 一个小型的静态帮助类，用于存放缓动函数
     public static class Easing
     {
-        public static float EaseOutQuad(float t)
+        public static float EaseOutQuad(float t) => 1 - (1 - t) * (1 - t);
+    }
+
+    // 构建邻接快照（仅限 cluster 内）
+    private Dictionary<Transform, List<Transform>> BuildAdjacencySnapshot(HashSet<Transform> cluster)
+    {
+        var adj = new Dictionary<Transform, List<Transform>>();
+        foreach (var node in cluster)
         {
-            return 1 - (1 - t) * (1 - t);
+            var neigh = LinkManager.instance != null ? LinkManager.instance.GetNeighborsOf(node) : new List<Transform>();
+            adj[node] = neigh.Where(n => n != null && cluster.Contains(n)).ToList();
         }
+        return adj;
+    }
+
+    // 生成逐个传递顺序（从被撞线端点中择一个起点，贪心最近邻覆盖）
+    private List<Transform> GenerateEliminationOrder(LinkController hitLink, HashSet<Transform> cluster, Dictionary<Transform, List<Transform>> adjacency)
+    {
+        Transform a = hitLink.obstacleA, b = hitLink.obstacleB;
+        Transform start = a;
+        Vector2 v = rb != null ? rb.velocity.normalized : Vector2.right;
+        if (a != null && b != null)
+        {
+            float angA = Vector2.Angle(v, ((Vector2)a.position - (Vector2)transform.position).normalized);
+            float angB = Vector2.Angle(v, ((Vector2)b.position - (Vector2)transform.position).normalized);
+            start = angA <= angB ? a : b;
+        }
+        if (start == null) start = cluster.FirstOrDefault();
+
+        List<Transform> order = new List<Transform>();
+        HashSet<Transform> vis = new HashSet<Transform>();
+        Transform cur = start;
+        while (cur != null && order.Count < cluster.Count)
+        {
+            order.Add(cur);
+            vis.Add(cur);
+
+            Transform next = null; float best = float.MaxValue;
+            if (adjacency.TryGetValue(cur, out var neigh))
+            {
+                foreach (var n in neigh)
+                {
+                    if (n != null && !vis.Contains(n))
+                    {
+                        float d = Vector2.Distance(cur.position, n.position);
+                        if (d < best) { best = d; next = n; }
+                    }
+                }
+            }
+            if (next == null)
+            {
+                foreach (var n in cluster)
+                {
+                    if (n != null && !vis.Contains(n))
+                    {
+                        float d = Vector2.Distance(cur.position, n.position);
+                        if (d < best) { best = d; next = n; }
+                    }
+                }
+            }
+            cur = next;
+        }
+        return order;
     }
 } 

@@ -181,10 +181,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990e4fc536ed8a04a9855914d5ffe494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveForce: 1.8125
-  maxSpeed: 13
-  rotationSpeed: 185
-  brakeFactor: 0.8
+  moveForce: 10
+  maxSpeed: 2
+  rotationSpeed: 200
+  brakeFactor: 0.9
   screenShakeThreshold: 2
   timeStopThreshold: 5
   pulseMaxSize: 1.25
@@ -326,6 +326,7 @@ MonoBehaviour:
   shakeDuration: 0.2
   shakeMagnitude: 0.1
   timeStopDuration: 1.5
+  cascadeStepDelay: 0.1
 --- !u!4 &260878172
 Transform:
   m_ObjectHideFlags: 0
